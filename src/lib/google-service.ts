@@ -160,7 +160,7 @@ export async function updateCalendarEvent(eventId: string, title: string, startT
 
 export async function getRecentEmails() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getUser();
+  const { data: { user: session } } = await supabase.auth.getUser();
 
   if (!session) return [];
 
