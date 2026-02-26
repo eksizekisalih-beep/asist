@@ -103,6 +103,15 @@ export default function SettingsPageClient() {
 
   const integrations = [
     {
+      id: "gemini-ai",
+      title: "Gemini Yapay Zeka",
+      description: "Asistanın zihin gücü. Mailleri analiz etmesi ve kararlar alması için API anahtarınızı tanımlayın.",
+      icon: Cpu,
+      status: apiKey ? "connected" : "disconnected",
+      color: "bg-indigo-600",
+      action: () => setActiveTab("ai_settings")
+    },
+    {
       id: "google-calendar",
       title: "Google Takvim",
       description: "Asistanın programınızı okuması ve yeni randevular oluşturması için takviminizi bağlayın.",
@@ -127,14 +136,6 @@ export default function SettingsPageClient() {
       icon: HardDrive,
       status: "coming_soon",
       color: "bg-blue-500"
-    },
-    {
-      id: "notion",
-      title: "Notion (Yakında)",
-      description: "Asistanınıza doğrudan Notion veritabanlarınızı okuma ve düzenleme yetkisi verin.",
-      icon: Database, 
-      status: "coming_soon",
-      color: "bg-slate-800"
     }
   ];
 
@@ -295,8 +296,8 @@ export default function SettingsPageClient() {
                     <Cpu size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">Yapay Zeka Yapılandırması</h3>
-                    <p className="text-sm text-slate-500 font-medium tracking-tight">Erişim için kendi API anahtarınızı (API Key) kullanmanız gerekmektedir.</p>
+                    <h3 className="text-lg font-bold text-slate-900">Yapay Zeka Servis Ayarı</h3>
+                    <p className="text-sm text-indigo-600 font-bold tracking-tight">DİKKAT: Sistemin çalışması için kendi Gemini API anahtarınızı girmeniz ZORUNLUDUR.</p>
                   </div>
                 </div>
 
