@@ -104,11 +104,23 @@ export default function ChatContainer() {
 
         const lowerInput = currentInput.toLowerCase();
         const triggers = ["fatura", "ödeme", "harcama", "borç", "ekstre", "invoice", "receipt"];
-        const taskTriggers = ["hatırlat", "görev", "takvim", "neler", "ne var", "ekle", "not al", "mail", "eposta", "e-posta", "ajanda", "randevu"];
+        const taskTriggers = ["hatırlat", "görev", "takvim", "neler", "ne var", "ekle", "not al", "mail", "eposta", "e-posta", "ajanda", "randevu", "toplantı", "nerede", "ne zaman", "etkinlik"];
         
         const supabase = createClient();
 
         if (triggers.some(t => lowerInput.includes(t)) || taskTriggers.some(t => lowerInput.includes(t))) {
+          // 0. Fetch Real-time Calendar Events (complementing DB)
+          try {
+            const dashRes = await fetch("/api/dashboard");
+            const dashData = await dashRes.json();
+            if (dashData.events && dashData.events.length > 0) {
+              const eventText = dashData.events.map((ev: any) => `- ${ev.summary} (Tarih: ${new Date(ev.start.dateTime || ev.start.date).toLocaleString('tr-TR')})`).join("\n");
+              systemContext += `[GERÇEK VERİ - GOOGLE TAKVİM: Şu anki canlı takvim etkinlikleri:\n${eventText}]\n\n`;
+            }
+          } catch (e) {
+            console.error("Calendar fetch error", e);
+          }
+
           // 1. Fetch Real Documents/Invoices from DB
           const { data: docs } = await supabase
             .from('documents')
@@ -127,7 +139,7 @@ export default function ChatContainer() {
             .select('*')
             .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
             .order('created_at', { ascending: false })
-            .limit(5);
+            .limit(10); // Increased limit slightly
 
           if (emails && emails.length > 0) {
             const emailText = emails.map((e: any) => `- ${e.subject} (Gönderen: ${e.sender}, Özet: ${e.summary})`).join("\n");
@@ -144,10 +156,10 @@ export default function ChatContainer() {
             
           if (reminders && reminders.length > 0) {
             const reminderText = reminders.map((r: any) => `- ${r.title} (Tarih: ${new Date(r.reminder_at).toLocaleString('tr-TR')})`).join("\n");
-            systemContext += `[GERÇEK VERİ - HATIRLATICILAR: Kullanıcının takvimi:\n${reminderText}]\n\n`;
+            systemContext += `[GERÇEK VERİ - HATIRLATICILAR: Sistemdeki bekleyen görevler:\n${reminderText}]\n\n`;
           }
 
-          if ((!docs || docs.length === 0) && (!emails || emails.length === 0) && (!reminders || reminders.length === 0)) {
+          if (!systemContext.includes("GERÇEK VERİ")) {
             systemContext += `[SİSTEM UYARISI: Kullanıcının veritabanında şu an HİÇBİR fatura, e-posta veya randevu bulunmamaktadır. Lütfen kullanıcıya verisi olmadığını açıkça söyle ve ASLA uydurma fatura/isim (Turkcell vb.) üretme. Sadece gerçek verileri konuş.]\n\n`;
           }
         }
