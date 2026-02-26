@@ -32,15 +32,15 @@ export async function POST(request: Request) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("email", emailAddress) // This assumes we save the user's email in profiles
+      .eq("email", emailAddress)
       .single();
 
     if (profile) {
-      console.log(`Webhook triggered for user: ${emailAddress} (${profile.id})`);
-      // Trigger sync for this specific user
-      await syncUserEmails(profile.id);
+      console.log(`[WEBHOOK] Triggering sync for: ${emailAddress} (ID: ${profile.id})`);
+      const res = await syncUserEmails(profile.id);
+      console.log(`[WEBHOOK] Sync finished. Success: ${res.success}, Count: ${res.syncedCount || 0}`);
     } else {
-      console.log(`No profile found for email: ${emailAddress}`);
+      console.log(`[WEBHOOK] No profile found for: ${emailAddress}`);
     }
 
     return NextResponse.json({ success: true });

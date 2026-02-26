@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       await gmail.users.watch({
         userId: 'me',
         requestBody: {
-          topicName: `projects/${process.env.GOOGLE_PROJECT_ID}/topics/gmail-notifications`,
+          topicName: `projects/asist-488519/topics/gmail-notifications`,
           labelIds: ['INBOX']
         }
       });
