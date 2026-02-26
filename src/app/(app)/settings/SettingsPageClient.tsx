@@ -71,6 +71,10 @@ export default function SettingsPageClient() {
   }, [supabase, searchParams]);
 
   const saveAiSettings = async () => {
+    if (!apiKey.trim()) {
+      setMessage({ type: "error", text: "Lütfen geçerli bir API anahtarı girin." });
+      return;
+    }
     setLoadingAi(true);
     setMessage(null);
     try {
@@ -82,11 +86,12 @@ export default function SettingsPageClient() {
         .update({ 
           ai_api_key: apiKey,
           ai_provider: aiProvider,
-          use_own_api_key: useOwnKey
+          use_own_api_key: true
         })
         .eq('id', user.id);
 
       if (error) throw error;
+      setUseOwnKey(true);
       setMessage({ type: "success", text: "Yapay zeka ayarlarınız başarıyla kaydedildi!" });
     } catch (err: any) {
       setMessage({ type: "error", text: "Hata: " + err.message });
@@ -286,49 +291,43 @@ export default function SettingsPageClient() {
               <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
                 
                 <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
-                  <div className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer"
-                      checked={useOwnKey}
-                      onChange={(e) => setUseOwnKey(e.target.checked)}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  <div className={`w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-lg bg-slate-900`}>
+                    <Cpu size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">Özel API Anahtarımı Kullan</h3>
-                    <p className="text-sm text-slate-500 font-medium">Bu özellik açıkken uygulama bizim havuzumuzu değil sizin anahtarınızı kullanır.</p>
+                    <h3 className="text-lg font-bold text-slate-900">Yapay Zeka Yapılandırması</h3>
+                    <p className="text-sm text-slate-500 font-medium tracking-tight">Erişim için kendi API anahtarınızı (API Key) kullanmanız gerekmektedir.</p>
                   </div>
                 </div>
 
-                <div className={`space-y-4 transition-all ${!useOwnKey ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className={`space-y-4`}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Yapay Zeka Sağlayıcısı</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Sağlayıcı</label>
                       <select 
                         value={aiProvider}
                         onChange={(e) => setAiProvider(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-700 appearance-none"
                       >
                         <option value="google">Google Gemini (Tavsiye Edilen)</option>
-                        <option value="openai">OpenAI (ChatGPT)</option>
-                        <option value="anthropic">Anthropic (Claude)</option>
+                        <option value="openai">OpenAI (Yakında)</option>
+                        <option value="anthropic">Anthropic (Yakında)</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">API Key (Gizli Anahtar)</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-2">Gemini API Key (Zorunlu)</label>
                       <div className="relative">
                         <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input 
                           type="password" 
                           value={apiKey}
                           onChange={(e) => setApiKey(e.target.value)}
-                          placeholder="sk-..."
+                          placeholder="AIzaSy..."
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono text-sm"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-2 font-medium">Bu anahtarı asla başkasıyla paylaşmayın. Sadece uygulamanızdaki sorgular için kullanılacaktır.</p>
+                      <p className="text-xs text-slate-500 mt-2 font-medium">Anahtarınız veritabanınızda güvenli bir şekilde şifrelenmiş olarak saklanır.</p>
                     </div>
                   </div>
                 </div>

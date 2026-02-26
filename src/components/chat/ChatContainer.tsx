@@ -42,11 +42,11 @@ export default function ChatContainer() {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('ai_api_key, use_own_api_key')
+          .select('ai_api_key')
           .eq('id', user.id)
           .single();
         
-        if (profile?.use_own_api_key && profile?.ai_api_key) {
+        if (profile?.ai_api_key) {
           setUserAiKey(profile.ai_api_key);
         }
       }

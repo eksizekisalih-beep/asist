@@ -30,7 +30,9 @@ export async function syncUserEmails(providedUserId?: string) {
   });
 
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-  const aiKey = profile.use_own_api_key ? profile.ai_api_key : undefined;
+  const aiKey = profile.ai_api_key;
+
+  if (!aiKey) return { success: false, message: "Yapay zeka anahtarı tanımlanmamış. Lütfen Ayarlar sayfasından anahtarınızı girin." };
 
   try {
     // 1. Fetch unread messages

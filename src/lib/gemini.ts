@@ -3,7 +3,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const DEFAULT_MODEL = "gemini-2.5-flash";
 
 const getModel = (customKey?: string) => {
-  const apiKey = customKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+  const apiKey = customKey || "";
+  if (!apiKey) {
+    throw new Error("Yapay zeka anahtarı (API Key) bulunamadı. Lütfen Ayarlar sayfasından kendi anahtarınızı tanımlayın.");
+  }
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({ 
     model: DEFAULT_MODEL,
