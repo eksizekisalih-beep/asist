@@ -103,9 +103,38 @@ export default function ChatContainer() {
         systemContext = `[SİSTEM YETKİSİ: Sen kullanıcının Google (Gmail ve Takvim) hesaplarına bağlısın. Sana sağlanan veriler GERÇEK verilerdir. "Erişimim yok" deme. Kullanıcı maillerini sorduğunda veya takvimiyle ilgili bilgi istediğinde bu bilgileri kullan.]\n\n[Şu anki gerçek zaman: ${now}]. Eğer kullanıcı yeni bir hatırlatıcı/görev eklemeni isterse onay ver ve mesajın EKLEMEYECEĞİN EN ALTINA şunu koy: [[ADD_REMINDER|Başlık|ISO_TARİH]]. Örn: [[ADD_REMINDER|Toplantı|2026-02-27T09:00:00]]\n\n`;
 
         const lowerInput = currentInput.toLowerCase();
-        const triggers = ["hatırlat", "görev", "takvim", "neler", "ne var", "ekle", "not al", "mail", "eposta", "e-posta", "ajanda", "randevu"];
-        if (triggers.some(t => lowerInput.includes(t))) {
-          const supabase = createClient();
+        const triggers = ["fatura", "ödeme", "harcama", "borç", "ekstre", "invoice", "receipt"];
+        const taskTriggers = ["hatırlat", "görev", "takvim", "neler", "ne var", "ekle", "not al", "mail", "eposta", "e-posta", "ajanda", "randevu"];
+        
+        const supabase = createClient();
+
+        if (triggers.some(t => lowerInput.includes(t)) || taskTriggers.some(t => lowerInput.includes(t))) {
+          // 1. Fetch Real Documents/Invoices from DB
+          const { data: docs } = await supabase
+            .from('documents')
+            .select('*')
+            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+            .order('created_at', { ascending: false });
+
+          if (docs && docs.length > 0) {
+            const docText = docs.map((d: any) => `- ${d.title}: ${d.amount} ${d.currency} (Tarih: ${new Date(d.created_at).toLocaleDateString()})`).join("\n");
+            systemContext += `[GERÇEK VERİ - BELGELER: Kullanıcının sistemdeki gerçek belgeleri:\n${docText}]\n\n`;
+          }
+
+          // 2. Fetch Real Analyzed Emails from DB
+          const { data: emails } = await supabase
+            .from('emails')
+            .select('*')
+            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+          if (emails && emails.length > 0) {
+            const emailText = emails.map((e: any) => `- ${e.subject} (Gönderen: ${e.sender}, Özet: ${e.summary})`).join("\n");
+            systemContext += `[GERÇEK VERİ - ANALİZ EDİLEN MAİLLER: Kullanıcının gerçek e-postaları:\n${emailText}]\n\n`;
+          }
+
+          // 3. Fetch Reminders
           const { data: reminders } = await supabase
             .from('reminders')
             .select('*')
@@ -115,21 +144,11 @@ export default function ChatContainer() {
             
           if (reminders && reminders.length > 0) {
             const reminderText = reminders.map((r: any) => `- ${r.title} (Tarih: ${new Date(r.reminder_at).toLocaleString('tr-TR')})`).join("\n");
-            systemContext += `[SİSTEM BİLGİSİ - KULLANICIYA GÖSTERME: Kullanıcının var olan hatırlatıcıları (eğer mevcut hatırlatıcıları soruyorsa bunu listele):\n${reminderText}]\n\n`;
-          } else {
-            systemContext += `[SİSTEM BİLGİSİ: Kullanıcının şu an bekleyen hatırlatıcısı yok.]\n\n`;
+            systemContext += `[GERÇEK VERİ - HATIRLATICILAR: Kullanıcının takvimi:\n${reminderText}]\n\n`;
           }
 
-          try {
-            const gmailRes = await fetch("/api/gmail/analyze");
-            const { analysis } = await gmailRes.json();
-            const importantEmails = analysis?.filter((e: any) => e.isImportant);
-            if (importantEmails?.length > 0) {
-              const emailText = importantEmails.map((e: any) => `- ${e.subject} (Gönderen: ${e.from})`).join("\n");
-              systemContext += `[SİSTEM BİLGİSİ - ÖNEMLİ MAİLLER: Kullanıcının şu an dikkat etmesi gereken önemli mailler var:\n${emailText}\nLütfen kullanıcıya bunlardan bahset ve hatırlatıcı kurmak isteyip istemediğini sor.]\n\n`;
-            }
-          } catch (e) {
-            console.error("Gmail analysis error", e);
+          if ((!docs || docs.length === 0) && (!emails || emails.length === 0) && (!reminders || reminders.length === 0)) {
+            systemContext += `[SİSTEM UYARISI: Kullanıcının veritabanında şu an HİÇBİR fatura, e-posta veya randevu bulunmamaktadır. Lütfen kullanıcıya verisi olmadığını açıkça söyle ve ASLA uydurma fatura/isim (Turkcell vb.) üretme. Sadece gerçek verileri konuş.]\n\n`;
           }
         }
 
