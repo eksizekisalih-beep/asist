@@ -66,7 +66,8 @@ export async function syncUserEmails(providedUserId?: string) {
       const subject = headers?.find(h => h.name === "Subject")?.value || "Konusuz";
       const sender = headers?.find(h => h.name === "From")?.value || "Bilinmiyor";
 
-      // 3. AI Analysis
+      // 3. AI Analysis (Add a small delay to respect free tier rate limits)
+      await new Promise(resolve => setTimeout(resolve, 500));
       const analysis = await classifyEmail(`${subject} - ${snippet}`, aiKey || undefined);
 
       // 4. Save to DB
