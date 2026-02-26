@@ -41,13 +41,22 @@ export async function GET() {
       .eq("user_id", session.user.id)
       .gte("reminder_at", new Date().toISOString());
 
+    // 4. Fetch pending count for badges/alerts
+    const { count: pendingCount } = await supabase
+      .from("emails")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", session.user.id)
+      .eq("processing_status", "pending")
+      .not("proposed_actions", "is", null);
+
     return NextResponse.json({
       events, // Still from Google for real-time calendar view
       emails: dbEmails || [], // Now from our OWN analyzed database
       stats: {
         documents: docCount || 0,
         reminders: reminderCount || 0,
-        emails: dbEmails?.length || 0
+        emails: dbEmails?.length || 0,
+        pendingCount: pendingCount || 0
       }
     });
   } catch (error: any) {

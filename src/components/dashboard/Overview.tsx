@@ -11,9 +11,11 @@ import {
   CheckCircle2,
   ChevronRight,
   Loader2,
-  CalendarDays
+  CalendarDays,
+  Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Overview() {
   const { t } = useTranslation();
@@ -83,6 +85,28 @@ export default function Overview() {
           </div>
         )}
       </div>
+
+      {/* Proactive AI Alert */}
+      {data?.stats?.pendingCount > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-indigo-600 rounded-[32px] p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-indigo-200"
+        >
+          <div className="flex items-center gap-6 text-center md:text-left">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold italic tracking-tight">Yeni önerilerim var!</h2>
+              <p className="text-indigo-100 text-sm mt-1">Gelen e-postalarınızda aksiyon alınması gereken {data.stats.pendingCount} yeni konu buldum.</p>
+            </div>
+          </div>
+          <Link href="/notifications" className="px-8 py-4 bg-white text-indigo-600 rounded-2xl font-black text-sm hover:bg-indigo-50 transition-all whitespace-nowrap shadow-lg">
+            ÖNERİLERİ İNCELE
+          </Link>
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
