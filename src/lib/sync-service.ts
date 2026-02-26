@@ -90,49 +90,7 @@ export async function syncUserEmails(providedUserId?: string) {
           continue;
       }
 
-      // 5. Automatic Actions
-      if (analysis.action === "add_calendar" && analysis.appointmentDate) {
-        try {
-          // Add to Google Calendar
-          await createCalendarEvent(analysis.title || subject, analysis.appointmentDate);
-          
-          // Add to local reminders (System will notify)
-          await supabase.from("reminders").insert({
-            user_id: userId,
-            title: analysis.title || subject,
-            reminder_at: analysis.appointmentDate,
-            description: "E-postadan otomatik oluşturuldu: " + analysis.summary,
-            reference_id: savedEmail.id
-          });
-
-          // Extra reminders: 1 hour before
-          const oneHourBefore = new Date(new Date(analysis.appointmentDate).getTime() - 60 * 60 * 1000).toISOString();
-          await supabase.from("reminders").insert({
-            user_id: userId,
-            title: `Hatırlatma: ${analysis.title || subject} (1 saat kaldı)`,
-            reminder_at: oneHourBefore,
-            priority: 'high',
-            reference_id: savedEmail.id
-          });
-
-          // Extra reminders: Morning of (8:00 AM)
-          const morningOf = new Date(analysis.appointmentDate);
-          morningOf.setHours(8, 0, 0, 0);
-          if (new Date() < morningOf) { // Sadece gelecekse ekle
-            await supabase.from("reminders").insert({
-              user_id: userId,
-              title: `Bugün: ${analysis.title || subject}`,
-              reminder_at: morningOf.toISOString(),
-              priority: 'normal',
-              reference_id: savedEmail.id
-            });
-          }
-
-        } catch (calErr) {
-          console.error("Auto Calendar/Reminder error:", calErr);
-        }
-      }
-
+      // 5. User will see this in the Notifications dashboard since processing_status defaults to 'pending'
       syncedCount++;
     }
 

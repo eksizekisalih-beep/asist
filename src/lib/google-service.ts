@@ -5,14 +5,14 @@ import { createClient } from "./supabase-server";
 
 export async function getCalendarEvents() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user: session } } = await supabase.auth.getUser();
 
   if (!session) return [];
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("google_access_token, google_refresh_token")
-    .eq("id", session.user.id)
+    .eq("id", session.id)
     .single();
 
   if (!profile?.google_access_token) return [];
@@ -43,14 +43,14 @@ export async function getCalendarEvents() {
 
 export async function createCalendarEvent(title: string, startTime: string) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user: session } } = await supabase.auth.getUser();
 
   if (!session) throw new Error("Oturum bulunamadı");
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("google_access_token, google_refresh_token")
-    .eq("id", session.user.id)
+    .eq("id", session.id)
     .single();
 
   if (!profile?.google_access_token) throw new Error("Google bağlı değil");
@@ -82,16 +82,92 @@ export async function createCalendarEvent(title: string, startTime: string) {
   }
 }
 
+export async function deleteCalendarEvent(eventId: string) {
+  const supabase = await createClient();
+  const { data: { user: session } } = await supabase.auth.getUser();
+
+  if (!session) throw new Error("Oturum bulunamadı");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("google_access_token, google_refresh_token")
+    .eq("id", session.id)
+    .single();
+
+  if (!profile?.google_access_token) throw new Error("Google bağlı değil");
+
+  const oauth2Client = getGoogleOAuthClient();
+  oauth2Client.setCredentials({
+    access_token: profile.google_access_token,
+    refresh_token: profile.google_refresh_token,
+  });
+
+  const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+  
+  try {
+    await calendar.events.delete({
+      calendarId: "primary",
+      eventId: eventId,
+    });
+    return true;
+  } catch (error) {
+    console.error("Google Calendar Delete Error:", error);
+    throw error;
+  }
+}
+
+export async function updateCalendarEvent(eventId: string, title: string, startTime: string) {
+  const supabase = await createClient();
+  const { data: { user: session } } = await supabase.auth.getUser();
+
+  if (!session) throw new Error("Oturum bulunamadı");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("google_access_token, google_refresh_token")
+    .eq("id", session.id)
+    .single();
+
+  if (!profile?.google_access_token) throw new Error("Google bağlı değil");
+
+  const oauth2Client = getGoogleOAuthClient();
+  oauth2Client.setCredentials({
+    access_token: profile.google_access_token,
+    refresh_token: profile.google_refresh_token,
+  });
+
+  const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+  
+  const end = new Date(startTime);
+  end.setHours(end.getHours() + 1);
+
+  try {
+    const response = await calendar.events.patch({
+      calendarId: "primary",
+      eventId: eventId,
+      requestBody: {
+        summary: title,
+        start: { dateTime: new Date(startTime).toISOString() },
+        end: { dateTime: end.toISOString() },
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Google Calendar Update Error:", error);
+    throw error;
+  }
+}
+
 export async function getRecentEmails() {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getUser();
 
   if (!session) return [];
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("google_access_token, google_refresh_token")
-    .eq("id", session.user.id)
+    .eq("id", session.id)
     .single();
 
   if (!profile?.google_access_token) return [];

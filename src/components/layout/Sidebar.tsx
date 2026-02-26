@@ -13,12 +13,15 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  Clock
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function Sidebar() {
+  const supabase = createClient();
   const pathname = usePathname();
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -43,11 +46,29 @@ export default function Sidebar() {
     return <div className="hidden md:flex w-[72px] h-screen bg-white border-r border-slate-200 flex-shrink-0" />;
   }
 
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    async function getCount() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { count } = await supabase
+        .from("emails")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("processing_status", "pending")
+        .not("proposed_actions", "is", null);
+      setNotificationCount(count || 0);
+    }
+    getCount();
+  }, []);
+
   const navItems = [
     { icon: MessageSquare, label: "AI Sohbet", href: "/chat" },
+    { icon: Bell, label: "Bildirimler", href: "/notifications", badge: notificationCount },
     { icon: LayoutDashboard, label: "Panel", href: "/dashboard" },
     { icon: FileText, label: "Dökümanlar", href: "/documents" },
-    { icon: Bell, label: "Hatırlatıcılar", href: "/reminders" },
+    { icon: Clock, label: "Hatırlatıcılar", href: "/reminders" },
   ];
 
   return (
@@ -100,6 +121,15 @@ export default function Sidebar() {
               {!isCollapsed && (
                 <span className="text-sm truncate">
                   {item.label}
+                </span>
+              )}
+
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className={cn(
+                  "flex items-center justify-center bg-indigo-600 text-white text-[10px] font-black rounded-full h-5 w-5 ml-auto shadow-lg shadow-indigo-200",
+                  isCollapsed && "absolute top-1 right-1"
+                )}>
+                  {item.badge}
                 </span>
               )}
               

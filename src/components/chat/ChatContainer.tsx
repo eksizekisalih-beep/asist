@@ -121,17 +121,21 @@ export default function ChatContainer() {
             console.error("Calendar fetch error", e);
           }
 
-          // 1. Fetch Real Documents/Invoices from DB
-          const { data: docs } = await supabase
-            .from('documents')
+          // 1. Fetch Pending Notifications (AI Sugestions)
+          const { data: pending } = await supabase
+            .from('emails')
             .select('*')
             .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-            .order('created_at', { ascending: false });
+            .eq('processing_status', 'pending')
+            .not('proposed_actions', 'is', null)
+            .limit(5);
 
-          if (docs && docs.length > 0) {
-            const docText = docs.map((d: any) => `- ${d.title}: ${d.amount} ${d.currency} (Tarih: ${new Date(d.created_at).toLocaleDateString()})`).join("\n");
-            systemContext += `[GERÇEK VERİ - BELGELER: Kullanıcının sistemdeki gerçek belgeleri:\n${docText}]\n\n`;
+          if (pending && pending.length > 0) {
+            const pendingText = pending.map((p: any) => `- [ID: ${p.id}] Konu: ${p.subject}, AI ÖNERİSİ: ${p.summary}`).join("\n");
+            systemContext += `[GERÇEK VERİ - BEKLEYEN BİLDİRİMLER: Kullanıcının henüz onaylamadığı AI önerileri:\n${pendingText}]\n\n`;
           }
+
+          // 2. Fetch Real Documents/Invoices from DB
 
           // 2. Fetch Real Analyzed Emails from DB
           const { data: emails } = await supabase
@@ -183,41 +187,73 @@ export default function ChatContainer() {
           setMessages((prev) => 
             prev.map(msg => 
               msg.id === `ai-${messageIdBase}` 
-                ? { ...msg, content: chunk.replace(/\[\[ADD_REMINDER\|.*?\|.*?\]\]/g, "") }
+                ? { ...msg, content: chunk.replace(/\[\[.*?\|.*?\]\]/g, "") }
                 : msg
             )
           );
         }, userAiKey || undefined);
 
         if (fullResponse) {
-           const matchRegex = /\[\[ADD_REMINDER\|(.*?)\|(.*?)\]\]/g;
-           let matches = [...fullResponse.matchAll(matchRegex)];
-           if (matches.length > 0) {
-               const supabase = createClient();
-               const { data: { user } } = await supabase.auth.getUser();
-               if (user) {
-                   for (const match of matches) {
-                       const title = match[1];
-                       const date = match[2];
-                       try {
-                         await supabase.from('reminders').insert({
-                             user_id: user.id,
-                             title: title,
-                             reminder_at: new Date(date).toISOString(),
-                         });
-                         
-                         fetch("/api/calendar", {
-                           method: "POST",
-                           body: JSON.stringify({ title, date: new Date(date).toISOString() })
-                         }).catch(e => console.error("Google Sync Failed", e));
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
 
-                         console.log("Reminder added & synced:", title, date);
-                       } catch (e) {
-                         console.error("Action error", e);
-                       }
-                   }
-               }
-           }
+          // 1. ADD_CALENDAR / ADD_REMINDER
+          const addMatch = /\[\[ADD_(?:CALENDAR|REMINDER)\|(.*?)\|(.*?)\|(.*?)\]\]/g;
+          let aMatches = [...fullResponse.matchAll(addMatch)];
+          for (const match of aMatches) {
+            const [_, title, date, desc] = match;
+            try {
+              await supabase.from('reminders').insert({
+                user_id: user.id,
+                title: title,
+                reminder_at: new Date(date).toISOString(),
+                description: desc || "Yapılandırılmış AI görevi"
+              });
+              await fetch("/api/calendar/create", {
+                method: "POST",
+                body: JSON.stringify({ title, startTime: new Date(date).toISOString(), description: desc })
+              });
+            } catch (e) { console.error("Add failed", e); }
+          }
+
+          // 2. DELETE_CALENDAR
+          const delMatch = /\[\[DELETE_CALENDAR\|(.*?)\]\]/g;
+          let dMatches = [...fullResponse.matchAll(delMatch)];
+          for (const match of dMatches) {
+            const eventId = match[1];
+            try {
+              // We'd need a delete API or a way to translate title to ID if using GCal
+              // For now, let's at least mark it as deleted in our DB if it was a reminder
+              await supabase.from('reminders').delete().eq('id', eventId).eq('user_id', user.id);
+            } catch (e) { console.error("Delete failed", e); }
+          }
+
+          // 3. REPLY_EMAIL
+          const replyMatch = /\[\[REPLY_EMAIL\|(.*?)\|(.*?)\]\]/g;
+          let rMatches = [...fullResponse.matchAll(replyMatch)];
+          for (const match of rMatches) {
+            const [_, emailId, body] = match;
+            try {
+              await fetch("/api/gmail/reply", {
+                method: "POST",
+                body: JSON.stringify({ emailId, body })
+              });
+            } catch (e) { console.error("Reply failed", e); }
+          }
+
+          // 4. SEND_EMAIL
+          const sendMatch = /\[\[SEND_EMAIL\|(.*?)\|(.*?)\|(.*?)\]\]/g;
+          let sMatches = [...fullResponse.matchAll(sendMatch)];
+          for (const match of sMatches) {
+            const [_, to, subject, body] = match;
+            try {
+              await fetch("/api/gmail/send", {
+                method: "POST",
+                body: JSON.stringify({ to, subject, body })
+              });
+            } catch (e) { console.error("Send failed", e); }
+          }
         }
       }
     } catch (error: any) {
