@@ -331,17 +331,17 @@ export default function SettingsPageClient() {
                       <p className="text-xs text-slate-500 mt-2 font-medium">Bu anahtarı asla başkasıyla paylaşmayın. Sadece uygulamanızdaki sorgular için kullanılacaktır.</p>
                     </div>
                   </div>
+                </div>
 
-                  <div className="pt-4 flex items-center gap-4">
-                    <button 
-                      onClick={saveAiSettings}
-                      disabled={loadingAi}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
-                    >
-                      {loadingAi ? <Loader2 className="w-5 h-5 animate-spin"/> : <Save className="w-5 h-5" />}
-                      Ayarları Kaydet
-                    </button>
-                  </div>
+                <div className="pt-4 flex items-center gap-4 mt-8 pt-6 border-t border-slate-100">
+                  <button 
+                    onClick={saveAiSettings}
+                    disabled={loadingAi}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+                  >
+                    {loadingAi ? <Loader2 className="w-5 h-5 animate-spin"/> : <Save className="w-5 h-5" />}
+                    Ayarları Kaydet
+                  </button>
                 </div>
 
               </div>
