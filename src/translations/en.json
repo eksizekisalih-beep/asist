@@ -1,0 +1,50 @@
+{
+  "common": {
+    "welcome": "Welcome back",
+    "assistant_name": "AI Assistant",
+    "send": "Send",
+    "type_placeholder": "Type your message or ask something...",
+    "camera": "Camera",
+    "settings": "Settings",
+    "proactive_proposal": "I have an update for you.",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "chat": {
+    "analyzing": "Analyzing your document...",
+    "processing_email": "Checking your latest emails...",
+    "suggested_reply": "I've drafted a reply for you:",
+    "reminder_set": "I've scheduled a reminder for this.",
+    "extraction_success": "I've successfully extracted the details."
+  },
+  "docs": {
+    "invoice": "Invoice",
+    "check": "Check",
+    "receipt": "Receipt",
+    "amount": "Amount",
+    "due_date": "Due Date",
+    "status": "Status"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "total_documents": "Total Documents",
+    "upcoming_reminders": "Upcoming Reminders",
+    "recent_emails": "Recent Emails",
+    "no_data": "No data available yet.",
+    "view_all": "View All"
+  },
+  "navigation": {
+    "chat": "AI Chat",
+    "dashboard": "Dashboard",
+    "documents": "Documents",
+    "reminders": "Reminders",
+    "settings": "Settings"
+  },
+  "actions": {
+    "approve": "Approve",
+    "remind_me_later": "Remind me later",
+    "i_will_handle": "I will handle it",
+    "draft_reply": "Draft a reply"
+  }
+}

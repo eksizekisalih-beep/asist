@@ -1,0 +1,50 @@
+{
+  "common": {
+    "welcome": "Tekrar hoş geldiniz",
+    "assistant_name": "Yapay Zeka Asistanı",
+    "send": "Gönder",
+    "type_placeholder": "Bir mesaj yazın veya bir soru sorun...",
+    "camera": "Kamera",
+    "settings": "Ayarlar",
+    "proactive_proposal": "Sizin için bir güncellemem var.",
+    "cancel": "İptal",
+    "confirm": "Onayla"
+  },
+  "chat": {
+    "analyzing": "Dokümanınız analiz ediliyor...",
+    "processing_email": "Son e-postalarınız kontrol ediliyor...",
+    "suggested_reply": "Sizin için bir yanıt taslağı hazırladım:",
+    "reminder_set": "Bunun için bir hatırlatıcı planladım.",
+    "extraction_success": "Detayları başarıyla çıkardım."
+  },
+  "docs": {
+    "invoice": "Fatura",
+    "check": "Çek",
+    "receipt": "Fiş",
+    "amount": "Tutar",
+    "due_date": "Vade Tarihi",
+    "status": "Durum"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "overview": "Genel Bakış",
+    "total_documents": "Toplam Doküman",
+    "upcoming_reminders": "Yaklaşan Hatırlatıcılar",
+    "recent_emails": "Son E-postalar",
+    "no_data": "Henüz veri bulunmuyor.",
+    "view_all": "Tümünü Gör"
+  },
+  "navigation": {
+    "chat": "AI Sohbet",
+    "dashboard": "Panel",
+    "documents": "Dokümanlar",
+    "reminders": "Hatırlatıcılar",
+    "settings": "Ayarlar"
+  },
+  "actions": {
+    "approve": "Onayla",
+    "remind_me_later": "Sonra hatırlat",
+    "i_will_handle": "Ben halledeceğim",
+    "draft_reply": "Taslak oluştur"
+  }
+}
