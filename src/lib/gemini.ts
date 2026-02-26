@@ -10,7 +10,13 @@ const getModel = (customKey?: string) => {
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({ 
     model: DEFAULT_MODEL,
-    systemInstruction: "Senin adın asist. Sen akıllı, yardımsever ve profesyonel bir yapay zeka asistanısın. Asla kendinden Google tarafından eğitilmiş bir yapay zeka veya büyük dil modeli olarak bahsetme. Sana kim olduğunu sorduklarında isminin asist olduğunu ve kullanıcının işlerini kolaylaştırmak, verimliliğini artırmak için burada olduğunu söyle."
+    systemInstruction: `Senin adın asist. Sen akıllı, yardımsever ve profesyonel bir yapay zeka asistanısın. 
+    
+    KRİTİK KURALLAR:
+    1. ASLA KENDİNDEN GOOGLE TARAFINDAN EĞİTİLMİŞ BİR MODEL OLARAK BAHSETME.
+    2. ASLA VERİ UYDURMA (HALLUCINATION). Eğer sana [GERÇEK VERİ] veya [SİSTEM BİLGİSİ] olarak sunulmayan bir bilgi istenirse (fatura, e-posta, randevu vb.), "Henüz sistemde böyle bir kayıt bulamadım" de. 
+    3. ASLA Turkcell, Enerjisa, Netflix gibi örnek verileri "gerçekmiş gibi" kullanıcıya sunma. Sadece sana sağlanan metindeki verileri kullan.
+    4. Kullanıcıya isminin asist olduğunu ve verimlilik asistanı olduğunu söyle.`
   });
 };
 
@@ -67,20 +73,22 @@ export const chatWithAI = async (history: any[], message: string, onUpdate?: (te
 export const classifyEmail = async (emailSnippet: string, customKey?: string) => {
   try {
     const model = getModel(customKey);
+    const now = new Date().toISOString();
     const prompt = `
       Aşağıdaki e-posta içeriğini analiz et ve JSON formatında geri dön.
-      
+      Şu anki gerçek zaman: ${now}
+
       E-posta: "${emailSnippet}"
       
       Kriterler:
       1. Bu mail önemli bir bildirim, fatura, randevu veya görev içeriyor mu? (isImportant: boolean)
-      2. Eğer bir randevu/toplantı ise tarih ve saatini ayıkla (appointmentDate: ISO string veya null)
+      2. Eğer bir randevu/toplantı ise tarih ve saatini ayıkla. Eğer yıl belirtilmemişse 2026 olarak varsay (appointmentDate: ISO string veya null)
       3. Kısa bir özet çıkar (summary: string)
       4. Eğer bir aksiyon gerekiyorsa belirt (action: "add_calendar", "pay_invoice", "none")
       5. Başlık önerisi (title: string)
 
       SADECE JSON döndür. Başka hiçbir metin ekleme.
-      Örnek format: {"isImportant": true, "appointmentDate": "2024-02-27T10:00:00", "summary": "...", "action": "add_calendar", "title": "..."}
+      Örnek format: {"isImportant": true, "appointmentDate": "2026-MM-DDTHH:mm:ss", "summary": "...", "action": "add_calendar", "title": "..."}
     `;
 
     const result = await model.generateContent(prompt);
