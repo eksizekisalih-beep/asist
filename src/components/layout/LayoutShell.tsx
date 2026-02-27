@@ -2,7 +2,6 @@
 
 import React from "react";
 import Sidebar from "./Sidebar";
-import "@/translations/i18n";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   return (

@@ -17,14 +17,12 @@ import {
   Clock,
   X
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase-browser";
 
 export default function Sidebar() {
   const supabase = createClient();
   const pathname = usePathname();
-  const { t } = useTranslation();
   
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

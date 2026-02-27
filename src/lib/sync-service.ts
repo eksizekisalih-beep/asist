@@ -80,7 +80,8 @@ export async function syncUserEmails(providedUserId?: string) {
           sender,
           summary: analysis.summary,
           is_processed: true,
-          proposed_actions: analysis
+          proposed_actions: analysis,
+          processing_status: 'pending'
         })
         .select()
         .single();

@@ -71,7 +71,8 @@ export default function Overview() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="h-full overflow-y-auto scrollbar-hide">
+      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -194,6 +195,7 @@ export default function Overview() {
             )}
           </div>
         </section>
+      </div>
       </div>
     </div>
   );
